@@ -1,0 +1,47 @@
+<div class="so-back dashboardOverviewBack" ng-controller="interstellar-basic-client.BalanceWidgetController as widget">
+  <div class="so-chunk">
+    <div class="dashboardOverviewRow" ng-if="widget.balanceLoaded">
+      <p class="dashboardOverviewRow__label">Your balance:</p>
+      <p class="dashboardOverviewRow__text">{{widget.balance}} lumens</p>
+      <p ng-if="widget.showRefreshButton">
+        <button class="s-button" ng-click="widget.loadAccount()">Refresh balance</button>
+      </p>
+    </div>
+     <div class="dashboardOverviewRow" ng-if="widget.balanceLoaded">
+      <p class="dashboardOverviewRow__label">Your balance:</p>
+      <p class="dashboardOverviewRow__text">{{widget.nezbalancedisplay}} NEZ</p>
+      <p ng-if="widget.showRefreshButton">
+        <button class="s-button" ng-click="widget.loadAccount()">Refresh balance</button>
+      </p>
+    </div>
+    <div class="dashboardOverviewRow">
+      <p class="dashboardOverviewRow__label">Your Stellar public key:</p>
+      <p class="dashboardOverviewRow__text">{{widget.address}}<span ng-if="widget.checkAddressAvailable" ng-click="widget.checkAddress()">&nbsp;&nbsp;<img ng-src="{{widget.monitorImage}}" style="cursor: pointer;" title="Check address on Ledger" /></span></p>
+    </div>
+  </div>
+
+  <div class="so-back" ng-if="widget.accountNotFound">
+    <div class="so-chunk">
+      <div class="accountUnfunded">
+        <div class="s-alert s-alert--warning accountUnfunded__alert">
+          This account doesn't exist on the network. To create this account, send it at least 1 lumen (XLM) to fulfill the <a href="https://www.stellar.org/developers/learn/concepts/fees.html#minimum-balance" target="_blank">minimum balance</a>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="so-back" ng-if="widget.invite">
+    <div class="so-chunk">
+      <div class="accountUnfunded">
+        <div class="s-alert s-alert--warning accountUnfunded__alert" ng-if="widget.invite.state == 'queued'">
+          <p>You haven't yet made a transaction with this account. You have {{widget.invite.days}} left to do so.</p>
+          <p>Send ANY numbers of Lumens to ANY public Stellar address using the form below to permanently claim this account. </p>
+        </div>
+
+        <div class="s-alert s-alert--warning accountUnfunded__alert" ng-if="widget.invite.state == 'merged_back'">
+          This account didn't have a transactions within 7 days of its creation, so its lumens were released. The current balance is 0 lumens. However you are able to claim an invite again, ask a friend for another invite to claim lumens.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+{
+  "name": "account-viewer",
+  "version": "0.0.1",
+  "private": true,
+  "description": "A simple account-viewer",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "author": "Stellar Development Foundation <stellar@stellar.org>",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/stellar/account-viewer.git"
+  },
+  "dependencies": {
+    "@ledgerhq/hw-app-str": "4.2.0",
+    "@ledgerhq/hw-transport-u2f": "4.2.0",
+    "babel-runtime": "^6.26.0",
+    "bignumber.js": "^2.0.8",
+    "interstellar-core": "~0.0.4",
+    "interstellar-network": "~0.0.12",
+    "interstellar-sessions": "~0.0.10",
+    "interstellar-ui-messages": "~0.0.3",
+    "lodash": "^3.10.1",
+    "stellar-base": "~0.6.0",
+    "stellar-sdk": "~0.6.2"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0"
+  }
+}

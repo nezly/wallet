@@ -1,0 +1,85 @@
+<div class="so-back">
+  <div class="so-chunk">
+    <div class="so-siteHeader siteHeader">
+      <span class="so-logo">
+        <a href="https://www.stellar.org/" class="so-logo__main">Stellar</a><!--
+        --><span class="so-logo__separator"> </span><!--
+        --><a href="https://www.stellar.org/account-viewer/" class="so-logo__subSite">account viewer</a>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="so-back">
+  <div ng-controller="interstellar-basic-client.LoginController as login" class="so-chunk">
+    <div class="welcomeBox">
+      <h2 class="welcomeBox__title">Stellar Account Viewer</h2>
+      <p>Use this lightweight client to send and receive lumens over the Stellar network.</p>
+    </div>
+    <form ng-submit="login.submit()" class="loginBox">
+      <p class="loginBox__label">Secret key:</p>
+      <input type="password" ng-model="login.secret" class="loginBox__input" placeholder="Example: SCHKBJ............ZLJ7" />
+
+      <div class="s-alert s-alert--alert" ng-if="login.alerts.length > 0">
+        <span ng-repeat="alert in login.alerts">
+          {{alert.title}}<br /><br />
+          {{alert.text}}
+        </span>
+      </div>
+
+      <button type="submit" class="s-button loginBox__submit" ng-class="{'is-disabled': login.processing}" ng-disabled="login.processing">Sign in</button>
+    </form>
+    <div class="middleBox">
+        <p>
+          Generate key pair for a new account
+        </p>
+
+        <div ng-if="login.newKeypair">
+          <p class="loginBox__warning">
+            <strong>ATTENTION:</strong>
+            Please write down your secret key and keep it safe. It won't be displayed again.
+            You will lose access to your lumens if you lose your secret key.
+          </p>
+
+          <div class="keypair">
+            Public Key:<br />
+            <code>{{login.newKeypair.publicKey}}</code><br /><br />
+
+            Secret Key:<br />
+            <code>{{login.newKeypair.secretKey}}</code>
+          </div>
+        </div>
+
+        <button type="button" class="s-button loginBox__submit" ng-click="login.generate()">Generate</button>
+    </div>
+    <div class="middleBox">
+      Connect Ledger Hardware Wallet <img ng-src="{{login.infoImage}}" ng-mousedown="login.toggleInfo()" style="cursor: pointer;" title="Click me" />
+      <br/>
+      <div class="loginBox__info" ng-show="login.showInfo">
+        Available on Chrome and Opera. Install the Stellar app from Ledger and enable browser support in the app settings.
+      </div>
+      <div class="loginBox__ledgerAccount">
+        <input id="ledgerDefaultAccountCheckbox" type="checkbox" ng-model="hideBip32Input" ng-init="hideBip32Input=true" />
+        <label for="ledgerDefaultAccountCheckbox" ng-if="hideBip32Input">Use default account</label>
+        <input type="text" ng-model="login.bip32Path" class="loginBox__input" placeholder="BIP32 path: 44'/148'/n'" ng-if="!hideBip32Input" />
+      </div>
+      <div class="s-alert s-alert--alert" ng-if="login.ledgerAlerts.length > 0">
+        <span ng-repeat="alert in login.ledgerAlerts">
+          {{alert.title}}<br /><br />
+          {{alert.text}}
+        </span>
+      </div>
+      <button type="button" class="s-button loginBox__submit" ng-click="login.proceedWithLedger()" ng-disabled="login.ledgerStatus != 'Connected'">Sign in with Ledger</button>
+    </div>
+    <div class="middleBox">
+      Looking for a more advanced wallet? <a href="https://www.stellar.org/lumens/wallets/">Proceed here &raquo;</a>
+    </div>
+    <div class="legacyBox">
+      Looking for legacy login? <a href="https://launch.stellar.org/">Proceed here &raquo;</a>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 20px; font-size: 14px; text-align: center;">
+  <a href="https://www.stellar.org/about/directory#wallets">Try other more advanced Wallets</a>
+</div>

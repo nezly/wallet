@@ -1,0 +1,174 @@
+<div class="sendPane" ng-controller="interstellar-basic-client.SendWidgetController as widget">
+  <h2 class="sendPane__title">Send lumens</h2>
+  <div class="sendSetup" ng-if="widget.view == 'sendSetup'">
+    <p class="sendSetup__titleBar">To</p>
+    <div class="sendSetup__destination">
+      <input ng-model="widget.destinationAddress" ng-blur="widget.loadDestination($event);" class="sendSetup__destination__input" ng-class="{'s-inputAlert--alert': widget.addressAlerts.length > 0}" placeholder="Recipient's public key or address" type="text">
+    </div>
+    <div class="s-alert s-alert--info sendSetup__info" ng-if="widget.loadingDestination">
+      Loading federation info...
+    </div>
+    <div class="s-alert s-alert--info sendSetup__info" ng-if="!widget.loadingDestination && widget.stellarAddress">
+      Stellar address: <code>{{widget.stellarAddress}}</code>
+      resolved to: <code>{{widget.destination}}</code>
+    </div>
+    <div class="s-alert s-alert--alert sendSetup__error" ng-if="widget.addressAlerts.length > 0">
+      <span ng-repeat="alert in widget.addressAlerts">
+        {{alert.title}} {{alert.text}}
+      </span>
+    </div>
+
+    <p class="sendSetup__titleBar">Amount</p>
+    <div class="s-inputGroup sendSetup__amount">
+      <input ng-model="widget.amount" class="s-inputGroup__item sendSetup__amount__input" ng-class="{'s-inputAlert--alert': widget.amountAlerts.length > 0}" type="text" placeholder="Amount to send">
+      
+      <!--<span class="s-inputGroup__item s-inputGroup__item--tag sendSetup__amount__tag">
+        lumens
+      </span>-->
+
+          <div class="so-dropdown sendSetup__asset__dropdown">
+            <span
+              class="s-inputGroup__item s-inputGroup__item--tag sendSetup__memo__memoSetup__selectTag"
+              ">
+              <select ng-model="widget.assetType" class="sendSetup__memo__memoSetup__selectTag__select so-dropdown__select" ng-class="{'s-inputAlert--alert': widget.assetAlerts.length > 0}">
+                <option selected>NEZ</option>
+                <option>LUMENS</option>
+              </select>
+            </span>
+          </div>
+
+
+
+    </div>
+<div class="s-alert s-alert--alert sendSetup__error" ng-if="widget.assetAlerts.length > 0">
+      <span ng-repeat="alert in widget.assetAlerts">
+        {{alert.title}} <span ng-bind-html="alert.text"></span>
+      </span>
+    </div>
+
+     <div class="s-alert s-alert--alert sendSetup__error" ng-if="widget.amountAlerts.length > 0">
+      <span ng-repeat="alert in widget.amountAlerts">
+        {{alert.title}} <span ng-bind-html="alert.text"></span>
+      </span>
+    </div>
+
+    <div class="sendSetup__memo">
+      <p class="sendSetup__titleBar" ng-if="!widget.memo">
+        <a href="#" ng-if="!widget.memoBlocked" ng-click="widget.showMemo($event);">Add memo</a>
+        <span href="" class="sendSetup__titleBar__side">
+          <a href="https://www.stellar.org/developers/learn/concepts/transactions.html#memo" target="_blank">what's a memo?</a>
+        </span>
+      </p>
+      <div ng-if="widget.memo">
+        <p class="sendSetup__titleBar">Memo
+          <span href="" class="sendSetup__titleBar__side">
+            <a href="https://www.stellar.org/developers/learn/concepts/transactions.html#memo" target="_blank">what's a memo?</a>
+            <span ng-if="!widget.memoBlocked"> |
+              <a href="#" ng-click="widget.hideMemo($event);">cancel</a>
+            </span>
+          </span>
+        </p>
+        <div class="s-inputGroup sendSetup__memo__memoSetup">
+          <div class="so-dropdown sendSetup__memo__memoSetup__dropdown">
+            <span
+              class="s-inputGroup__item s-inputGroup__item--tag sendSetup__memo__memoSetup__selectTag"
+              ng-class="{'is-disabled': widget.memoBlocked}">
+              <select ng-model="widget.memoType" ng-disabled="widget.memoBlocked"
+                class="sendSetup__memo__memoSetup__selectTag__select so-dropdown__select"
+                ng-class="{'is-disabled': widget.memoBlocked}">
+                <option>MEMO_TEXT</option>
+                <option>MEMO_ID</option>
+                <option>MEMO_HASH</option>
+                <option>MEMO_RETURN</option>
+              </select>
+            </span>
+          </div>
+          <input ng-model="widget.memoValue"
+            ng-disabled="widget.memoBlocked"
+            class="sendSetup__memo__memoSetup__input"
+            ng-class="{'s-inputAlert--alert': widget.memoErrorAlerts.length > 0, 'is-disabled': widget.memoBlocked}"
+            placeholder="{{widget.memoPlaceholder}}" type="text" />
+        </div>
+      </div>
+    </div>
+    <div ng-if="widget.memoBlocked" class="s-alert s-alert--info sendSetup__info">
+      <span>
+        <strong>Note</strong>: The specified federation address requires this transaction's memo to be a certain value.
+      </span>
+    </div>
+    <div class="s-alert s-alert--alert sendSetup__error" ng-if="widget.memoErrorAlerts.length > 0">
+      <span ng-repeat="alert in widget.memoErrorAlerts">
+        {{alert.title}} {{alert.text}}
+      </span>
+    </div>
+    <div class="s-alert s-alert--warning sendSetup__error" ng-if="widget.memoWarningAlerts.length > 0">
+      <span ng-repeat="alert in widget.memoWarningAlerts">
+        {{alert.title}} {{alert.text}}
+      </span>
+    </div>
+
+    <button class="s-button sendSetup__submit" ng-class="{'is-disabled': widget.sending || widget.loadingDestination}" ng-disabled="widget.sending || widget.loadingDestination" type="submit" ng-click="widget.send()">Send {{widget.assetType}}</button>
+  </div>
+
+  <div class="sendConfirm" ng-if="widget.view == 'sendConfirm'">
+    <p class="sendConfirm__addressLabel">You're sending to this public key:</p>
+    <p class="sendConfirm__address">{{widget.destination}}</p>
+
+    <div class="sendConfirm__sendingContainer">
+      <div class="sendConfirm__sendingContainer__label">Sending</div>
+      <div class="sendConfirm__sendingContainer__amount">
+        <span class="sendConfirm__sendingContainer__amount__info">{{widget.displayedAmount}}</span>
+        <br />
+        <span class="sendConfirm__sendingContainer__amount__label">{{widget.assetType}}</span>
+      </div>
+    </div>
+
+    <div class="sendConfirm__sendingContainer" ng-if="widget.memo">
+      <div class="sendConfirm__sendingContainer__label">Memo</div>
+      <div class="sendConfirm__sendingContainer__amount">
+        <span class="sendConfirm__sendingContainer__amount__helper">{{widget.memoType}}:</span>
+        <br />
+        <span class="sendConfirm__sendingContainer__amount__info">{{widget.memoValue}}</span>
+      </div>
+    </div>
+    <div class="s-alert s-alert--warning" ng-if="!widget.memo && widget.memoWarningAlerts.length > 0">
+      <span ng-repeat="alert in widget.memoWarningAlerts">
+        {{alert.title}} {{alert.text}}
+      </span>
+    </div>
+
+
+    <button class="s-button sendConfirm__submit" ng-click="widget.confirm()">Submit transaction</button>
+
+    <a href="#" class="sendConfirm__edit" ng-click="widget.showView($event, 'sendSetup')">← Edit</a>
+  </div>
+
+  <div class="sendWaiting" ng-if="widget.view == 'sendWaiting'">
+    <div class="sendWaiting__rocket">
+      <img ng-src="{{widget.rocketImage}}" alt="Submitting..." />
+    </div>
+    <p ng-if="widget.useLedger" class="sendWaiting__ledger">Check the transaction using your Ledger device.</p>
+    <p class="sendWaiting__status">Submitting transaction to the network...</p>
+  </div>
+
+  <div class="sendOutcome" ng-if="widget.view == 'sendOutcome'">
+    <div ng-if="widget.success">
+      <p class="sendOutcome__label">Transaction successfully completed</p>
+    </div>
+    <div ng-if="!widget.success">
+      <p class="sendOutcome__label">Transaction failed</p>
+
+      <p class="" ng-if="widget.needsResubmit">
+        <strong>Warning</strong> We submitted your transaction to the network but because of the network conditions we are
+        not certain about it's status: it could either succeed or fail. Instead of recreating the transaction you should use
+        the button below to safely resubmit the transaction:<br />
+        <br />
+        <button class="s-button sendConfirm__submit" ng-click="widget.resubmitTransaction()">Resubmit transaction</button>
+      </p>
+
+      <pre class="sendOutcome__code" ng-if="widget.outcomeMessage"><code>{{widget.outcomeMessage}}</code></pre>
+    </div>
+
+    <button class="s-button sendOutcome__return" ng-if="widget.success || !widget.needsResubmit" ng-click="widget.showView($event, 'sendSetup')">Send another transaction</button>
+  </div>
+</div>
