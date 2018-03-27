@@ -1,0 +1,311 @@
+<html>  
+    
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<body>  
+
+    <h1>Nez Wallet</h1>
+<div id="loginDiv">
+    <input id="privateKey" style="height: 30px; width: 300px" value="" placeholder="Private key" />
+
+   <!-- <button onclick="StellarController.fetchBalance()">Fetch Balance</button>-->
+	<button onclick="StellarController.checkSecret()">Login</button>
+	
+</div>
+	
+	<ul id="balances">
+    </ul>
+	
+	<div id="sendPaymentDiv" style="display:none;">
+<br><br>
+	
+	
+	To Address : <input id="toAccount" style="height: 30px; width: 300px" value="" placeholder="Valid Stellar Address" />
+<br>
+	
+	Amount : <input id="toAmount" style="height: 30px; width: 300px" value="1.120976" placeholder="Amount" />
+<br>
+	Asset :<input id="sendAsset" style="height: 30px; width: 300px" value="XLM" placeholder="Asset Code e.g. XLM / NEZ" />
+	<br>
+		Memo : <input id="sendMemo" style="height: 30px; width: 300px" value="Testing Nez Wallet" placeholder="Memo Text" />
+<br>
+
+
+ Secret Signing Key : <input id="signPrivateKey" style="height: 30px; width: 300px" value="" placeholder="Private key" />
+<br>
+<br>
+ 
+ 
+		    <button onclick="StellarController.sendPayment()">Send Payment</button>
+<br><br>
+	
+	
+	
+	
+	
+	<h1>Transactions</h1>
+	<ul id="transactionsList">
+    </ul>
+	
+</div>	
+	
+	
+	
+	
+	
+	
+</body>
+<script src="./bower_components/stellar-sdk/stellar-sdk.js"></script>
+<script>
+    var assetCode = "ZEN";
+    var assetIssuer = "GAW3RFKRCLGI3T34466RMRTNRL37TLPTNXMNJ3CTISKRPPVPYTQKVOEL";
+    var $privateKey = $("#privateKey");
+    var $balances = $("#balances");
+	var $transactionsList = $("#transactionsList");
+	
+	var $toAccount = $("#toAccount");
+	var $toAmount = $("#toAmount");
+	var $sendAsset = $("#sendAsset");
+		var $sendMemo = $("#sendMemo");
+
+	//var signPrivateKey = $("#signPrivateKey").val();
+	var assetToSend = StellarSdk.Asset.native();
+	
+    const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+    StellarSdk.Network.useTestNetwork();
+    var StellarController = {
+        fetchAccount: function(cb) {
+            const pk = $privateKey.val();
+            console.log(pk);
+            const kp = StellarSdk.Keypair.fromSecret(pk);
+            console.log(kp);
+            console.log(kp.publicKey());
+			
+            server.loadAccount(kp.publicKey())
+            .then(function(acct){
+                cb(acct);
+            });
+        },
+		checkSecret: function(){
+		 try {
+				const LogedInPrivateKey = StellarSdk.Keypair.fromSecret($privateKey.val());
+				console.log(LogedInPrivateKey);
+				$("#loginDiv").hide();
+				
+				$("#sendPaymentDiv").show();
+				StellarController.fetchBalance();
+		}
+		catch(err) {
+				console.log('An error has occured:');
+				console.log(err);
+				
+			  }
+            
+			
+		
+		},
+		
+		
+		
+		
+		
+        sendPayment: function() {
+            //
+		StellarController.fetchAccount(function(acct) {
+			
+			var sourceKeypair = StellarSdk.Keypair.fromSecret($privateKey.val());
+			
+			var currentAccount = sourceKeypair.publicKey();
+			
+			if($sendAsset.val() === "ZEN"){
+			
+			 assetToSend = new StellarSdk.Asset(assetCode,assetIssuer);
+			
+			}
+			
+			
+			server.loadAccount(currentAccount)
+		  .then(function(acct) {
+			var transaction = new StellarSdk.TransactionBuilder(acct)
+			  // Add a payment operation to the transaction
+			  .addOperation(StellarSdk.Operation.payment({
+				destination: $toAccount.val(),
+				// The term native asset refers to lumens
+				asset: assetToSend,
+				// Specify 350.1234567 lumens. Lumens are divisible to seven digits past
+				// the decimal. They are represented in JS Stellar SDK in string format
+				// to avoid errors from the use of the JavaScript Number data structure.
+				amount: $toAmount.val(),
+			  }))
+			  // Uncomment to add a memo (https://www.stellar.org/developers/learn/concepts/transactions.html)
+			   .addMemo(StellarSdk.Memo.text($sendMemo.val()))
+			  .build();
+
+			// Sign this transaction with the secret key
+			// NOTE: signing is transaction is network specific. Test network transactions
+			// won't work in the public network. To switch networks, use the Network object
+			// as explained above (look for StellarSdk.Network).
+			transaction.sign(sourceKeypair);
+
+			// Let's see the XDR (encoded in base64) of the transaction we just built
+			console.log(transaction.toEnvelope().toXDR('base64'));
+
+			// Submit the transaction to the Horizon server. The Horizon server will then
+			// submit the transaction into the network for us.
+			server.submitTransaction(transaction)
+			  .then(function(transactionResult) {
+				console.log(JSON.stringify(transactionResult, null, 2));
+				console.log('\nSuccess! View the transaction at: ');
+				console.log(transactionResult._links.transaction.href);
+				
+				StellarController.fetchBalance();
+				StellarController.fetchTransactions();
+				
+				
+			  })
+			  .catch(function(err) {
+				console.log('An error has occured:');
+				console.log(err);
+			  });
+		  })
+		  .catch(function(e) {
+			console.error(e);
+		  });
+			
+			});
+			
+			
+			//
+        },
+		fetchBalance: function() {
+            StellarController.fetchAccount(function(acct) {
+                const balances = acct.balances;
+                console.log(balances);
+                
+                var balancesWeCareAbout = [];
+                var foundAsset = false;
+                for(var i = 0; i < balances.length; i++) {
+                    var b = balances[i];
+                    if(b.asset_code === assetCode) {
+                        balancesWeCareAbout.push(b);
+                        foundAsset = true;
+                    } 
+                    if(b.asset_type === "native") {
+                        b.asset_code = "XLM";
+                        balancesWeCareAbout.push(b);
+                    }
+                }
+                if(!foundAsset) {
+                    StellarController.createTrustline(function(res) {
+                        $balances.empty();
+                        
+                        // Added asset so need to add to balances we care about    
+                        // Treating this as a stack...
+                        balancesWeCareAbout.push({asset_code: assetCode, balance: "0.0000000"});
+                        var len = balancesWeCareAbout.length;
+                        for(var i = 0; i < len; i++) {
+                            var b = balancesWeCareAbout.pop();
+                            $balances.append(`<li> ${b.balance} of ${b.asset_code}`);
+                        }
+                        return;
+                        
+                    }, function(err) {
+                        console.error(err);
+                    });
+                }
+                
+                $balances.empty();
+                for(var i = 0; i < balancesWeCareAbout.length; i++) {
+                    var b = balancesWeCareAbout[i];
+                    $balances.append(`<li> ${b.balance} of ${b.asset_code}`);
+                }
+				
+				
+            });
+			
+			StellarController.fetchTransactions();
+        },
+		
+		fetchTransactions: function(){
+		
+
+            var accountId = StellarSdk.Keypair.fromSecret($privateKey.val());
+			var transactionsArray = [];
+			var currentAccount = accountId.publicKey();
+			server.payments()
+			.forAccount(currentAccount)
+			.order('desc')
+			.limit(100)
+			.call()
+			.then(function (payments) {
+			console.log('Page 1: ');
+			console.log(payments.records);
+			
+			$transactionsList.empty();
+			for(var i = 0; i < payments.records.length; i++) {
+                    var p = payments.records[i];
+
+					//console.log(p.from);
+					
+					var asset = "XLM"
+					
+					if(p.asset_type==="credit_alphanum4")
+					{
+						asset = p.asset_code;
+					}
+					
+					
+					if(p.type==="payment"){
+					
+					if(p.from===currentAccount)
+					{
+						
+						
+						$transactionsList.append(`<li> Date : ${p.created_at} Asset : ${asset}  Sent To : ${p.to}  Amount: - ${p.amount}  `);
+
+					}
+					else
+					{
+						$transactionsList.append(`<li> Date : ${p.created_at} Asset : ${asset}  Received From : ${p.from}  Amount: + ${p.amount}  `);
+					
+					}
+					
+					}
+					
+					
+                }
+			
+			
+			
+			
+			
+			
+			})
+			.catch(function (err) {
+				console.log(err);
+			});
+		},
+		
+		
+        createTrustline: function(cb, errcb) {
+            StellarController.fetchAccount(function(acct) {
+                var tx = new StellarSdk.TransactionBuilder(acct)
+                    .addOperation(StellarSdk.Operation.changeTrust({
+                        asset: new StellarSdk.Asset(assetCode,assetIssuer)
+                    })).build();
+                console.log("TRANS " + tx);
+                const pk = $privateKey.val();
+                console.log("PK " + pk);
+                const kp = StellarSdk.Keypair.fromSecret(pk);
+                tx.sign(kp);
+                console.log("TX ENV " + tx.toEnvelope());
+                server.submitTransaction(tx)
+                .then(function(res) { return cb(res) })
+                .catch(function(err) { return errcb(err) });
+            });
+        }
+    }
+</script>
+</html>
