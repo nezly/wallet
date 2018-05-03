@@ -1,10 +1,4 @@
 $(function() {
-    /*
-     $(document).on('submit', '#login-form', function () {
-     event.preventDefault();
-     login();
-     });
-     */
 
     $("#login-form").validate(
     {
@@ -24,6 +18,24 @@ $(function() {
         }
     });
 
+    $(document).on('click', '.createwallet', function(event)
+    {
+        event.preventDefault();
+        if ($("#chkterms").prop('checked') === true)
+        {
+            generate_new_wallet();
+        }
+        else
+        {
+            sweet_popup("Terms and Conditions", 'In order to proceed, please remember to check the box indicating you agree with the Terms and Conditions.', "warning");
+        }
+    });
+
+    $(document).on('click', '.loginpage', function(event)
+    {
+        event.preventDefault();
+        window.location.href = '/';
+    });
 
     $(document).on('click', '.new', function()
     {
@@ -39,4 +51,10 @@ $(function() {
     {
         copy_public_address();
     });
+
+    $(document).on('click', '.copysecret', function()
+    {
+        copy_secret_to_clipboard();
+    });
+
 });
