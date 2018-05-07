@@ -114,7 +114,7 @@ function page_wallet()
                         //Check if conditions met to change trust line to accept NEZ
                         if (!nez_accepted)
                         {
-                            setTimeout(function() { change_trust_allow_nez(account); }, 5000);
+                            setTimeout(function() { change_trust_allow_nez(); }, 5000);
                         }
                     })
                     .catch(function(e) {
@@ -135,34 +135,31 @@ function page_wallet()
     });
 }
 
-function change_trust_allow_nez(account)
+function change_trust_allow_nez()
 {
-    /*
+    var nezlyToken = new StellarSdk.Asset('NEZ', NEZ_ISSUER);
+
     server = new StellarSdk.Server(STELLAR_SERVER);
+    StellarSdk.Config.setAllowHttp(true);
+    StellarSdk.Network.usePublicNetwork();
 
-    StellarSdk.Operation.changeTrust ({
-        //asset: "NEZ",
-        asset: NEZ_ISSUER
-        //source: public_key
-    });
-*/
-    StellarSdk.Operation.changeTrust("NEZ");
-    /*
-    var transaction = new StellarSdk.TransactionBuilder(account)
+    server.loadAccount(public_key)
+        .then(function(receiver) {
+            var transaction = new StellarSdk.TransactionBuilder(receiver)
+            // The `changeTrust` operation creates (or alters) a trustline
+            // The `limit` parameter below is optional
+                .addOperation(StellarSdk.Operation.changeTrust({
+                    asset: nezlyToken,
+                    limit: '120000000'
+                }))
+                .build();
 
-         .addOperation(StellarSdk.Operation.changeTrust({
-             //asset: "NEZ",
-             asset: NEZ_ISSUER
-             //source: public_key
-         }))
-       //.addOperation(StellarSdk.Operation.changeTrust(NEZ_ISSUER))
-
-        .build();
-
-    transaction.sign(StellarSdk.Keypair.fromSecret(secret_key)); // sign the transaction
-
-    server.submitTransaction(transaction);
-    */
+            transaction.sign(StellarSdk.Keypair.fromSecret(secret_key));
+            return server.submitTransaction(transaction);
+        })
+        .catch(function(error) {
+            console.error('Error!', error);
+        });
 }
 
 function page_new_wallet()
