@@ -1,6 +1,3 @@
-const API = 'https://api.nezly.com/api/v1/';
-const API_WEB = 'https://api.nezly.com/';
-const API_AUTH ='https://api.nezly.com/oauth/token';
 const STELLAR_SERVER = 'https://horizon.stellar.org';
 const NEZ_ISSUER = 'GDGKBRCPW4C3ENNC5C64PE6U33MG52GBKFXOK5P3OSWF74DAOXRXV6OJ';
 const XLM_TRANSACTION_COST = 1.0001;
@@ -18,33 +15,6 @@ var server = null;
 var stellar_account = null;
 var xlm_total = 0;
 var nez_total = 0;
-
-function getCsrfToken()
-{
-    $.ajax(
-    {
-        type: "GET",
-        url: API_WEB + 'signup',
-        dataType: 'html',
-        data: '',
-        crossDomain: true,
-        success: function(response, status, xhr)
-        {
-            if (xhr.status === 200)
-            {
-                csrf_token =  $(response).filter('meta[name="csrf-token"]').attr("content");
-            }
-        },
-        error: function ()
-        {
-            console.log('Failed to retrieve CSRF token');
-        },
-        complete: function()
-        {
-
-        }
-    });
-}
 
 function sweet_popup(pop_title, pop_text, pop_type)
 {

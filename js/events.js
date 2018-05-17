@@ -18,24 +18,6 @@ $(function() {
         }
     });
 
-    // $("#payment-form").validate(
-    // {
-    //     submitHandler: function (form)
-    //     {
-    //         page_preview_payment();
-    //     },
-    //     rules:
-    //     {
-    //         toaddress:
-    //         {
-    //             required: true,
-    //             secretStartsWithG: true,
-    //             minlength: 56,
-    //             maxlength: 56,
-    //         }
-    //     }
-    // });
-
     $(document).on('click', '.createwallet', function(event)
     {
         event.preventDefault();
