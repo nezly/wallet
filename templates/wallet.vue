@@ -9,8 +9,8 @@
             </div>
             <div class="navbar-collapse collapse purple-bg" id="navbar">
                 <ul class="nav navbar-nav">
-                    <li class="active">
-                        <a aria-expanded="false" role="button" href="/">Login With Key</a>
+                    <li class="active pull-right">
+                        <a aria-expanded="false" role="button" href="/">Log Out</a>
                     </li>
                     <li>
                         <a aria-expanded="false" role="button" href="#" class="new"> New Wallet </a>
@@ -38,14 +38,19 @@
                                 <h2 id="xlm_line" class="nezly-blue font-bold" style="margin-top: 0px;">XLM: <span class="text-white" id="xlmtotal" v-cloak="true"></span></h2>
                                 <h2 id="nez_line" class="nezly-blue font-bold" style="margin-top: 0px;">NEZ: <span class="text-white" id="neztotal" v-cloak="true"></span></h2>
                             </div>
-                            <div class="col-md-8">
+                            <div class="col-md-8" id="transactiondiv">
                                 <h3 class="nezly-blue" style="margin-top: 0px;">Transaction:</h3>
                                 <form id="payment-form" method="post" action="#">
                                     <div class="form-group" style="margin: 0;">
                                         <input id="toaddress" name="toaddress" type="text" placeholder="Recipient Address" class="all_field" style="margin-top: 0px !important;" />
                                         <input id="amount" name="amount" type="text" placeholder="Amount" class="all_field" style="display: inline; width: 50%; margin-right: 16px;" />
-                                        <input id="amount2" name="amount2" type="text" placeholder="Amount" class="all_field" style="width: 40%;" />
+                                        <select id="asset" class="custom-select custom-select-md all_field" style="display: inline; width: 40% !important;">
+                                            <option selected value="0">Select Asset</option>
+                                        </select>
+                                        <!--
                                         <input id="memotext" name="memotext" type="text" placeholder="Message (Optional)" class="all_field" />
+                                        -->
+                                        <div class="text-center errortxt"></div>
                                         <div class="all_fields"><input type="submit" value="PREVIEW PAYMENT" /></div>
                                     </div>
                                 </form>
@@ -54,10 +59,7 @@
                     </div>
                 </div>
             </div>
-
         </div>
-
-
     </div>
     <div class="footer fixed">
         <div>

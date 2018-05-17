@@ -8607,4 +8607,10 @@ body.md-skin {
   margin-top: 0px;
 }
 
+.errortxt
+{
+  color: #cc596c !important;
+  font-weight: bold;
+}
+
 [v-cloak] {display: none}
