@@ -45,6 +45,7 @@
                     </div>
                     <p class="all_paragraph">
                         <span class="span2">DISCLAIMER: The full source code for this online wallet is available on <a href="https://github.com/nezly/wallet" target="_blank">Github</a>. Your private/secret key is not stored by Nezly or in cookies and is only used to sign transactions directly on the Stellar Network.</span><br /><br />
+                        <span class="span2">Please read our <a href="terms.html" target="_blank">Terms of Use</a> and <a href="privacy.html" target="_blank">Privacy Policy</a></span><br /><br />
                         <span class="span2">Have questions? Contact us at support@nezly.com</span>
                     </p>
                 </div>
