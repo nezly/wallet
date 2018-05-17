@@ -1,6 +1,6 @@
 const STELLAR_SERVER = 'https://horizon.stellar.org';
 const NEZ_ISSUER = 'GDGKBRCPW4C3ENNC5C64PE6U33MG52GBKFXOK5P3OSWF74DAOXRXV6OJ';
-const XLM_TRANSACTION_COST = 1.0001;
+const XLM_TRANSACTION_MIN = 1.5; //Required minimum balance
 
 var csrf_token = null;
 var client_id = 0;
@@ -12,6 +12,7 @@ var key_pair = null;
 var public_key = null;
 var secret_key = null;
 var server = null;
+var eventserver = null;
 var stellar_account = null;
 var xlm_total = 0;
 var nez_total = 0;
@@ -56,17 +57,17 @@ function check_payment_values()
 
     if (asset_value === '1') //XLM
     {
-        if (parseFloat(amount) > (parseFloat(xlm_total) - parseFloat(XLM_TRANSACTION_COST)))
+        if (parseFloat(amount) > (parseFloat(xlm_total) - parseFloat(XLM_TRANSACTION_MIN)))
         {
-            sweet_popup("Amount Exceeds Funds", 'This transaction requires at least ' + XLM_TRANSACTION_COST + ' to be remaining in your XLM account after the transaction.', "warning");
+            sweet_popup("Amount Exceeds Funds", 'This transaction requires at least ' + XLM_TRANSACTION_MIN + ' to be remaining in your XLM account after the transaction.', "warning");
             return false;
         }
     }
     else if (asset_value === '2') //NEZ
     {
-        if (parseFloat(xlm_total) < parseFloat(XLM_TRANSACTION_COST))
+        if (parseFloat(xlm_total) < parseFloat(XLM_TRANSACTION_MIN))
         {
-            sweet_popup("Need Minimum XLM", 'This transaction requires at least ' + XLM_TRANSACTION_COST + ' to be in your XLM account.', "warning");
+            sweet_popup("Need Minimum XLM", 'This transaction requires at least ' + XLM_TRANSACTION_MIN + ' to be in your XLM account.', "warning");
             return false;
         }
         else
@@ -145,6 +146,7 @@ function page_wallet()
                                     value: 1,
                                     text: 'XLM'
                                 }));
+                                //incoming_payment_handler();
                             }
                             else if (asset.asset_code === 'NEZ' && asset.asset_issuer === NEZ_ISSUER)
                             {
@@ -156,7 +158,6 @@ function page_wallet()
                                 }));
                                 nez_accepted = true;
                             }
-                            //console.log(asset);
                         });
                         $("#xlmtotal").html(xlm_total);
                         $("#neztotal").html(nez_total);
@@ -176,13 +177,11 @@ function page_wallet()
 
                         switch (response.status)
                         {
-                            case 404 :  sweet_popup("Account Needs Activation", 'To activate this account you need to send 2 or more Stellar Lumens (XLM). You can buy XLM from an exchange and send to your public address.', "warning");
-                                        $("#xlmtotal").html('Send 2+ XLM to activate');
+                            case 404 :  sweet_popup("Account Needs Activation", 'To activate this account you need to send 5 or more Stellar Lumens (XLM). You can buy XLM from an exchange and send to your public address.', "warning");
+                                        $("#xlmtotal").html('Send 5 XLM or more to activate this account.');
                                         $("#neztotal").html('');
                                         break;
                         }
-
-                        //console.log(response);
                     });
             }
         });
@@ -282,18 +281,28 @@ function page_preview_payment()
                     window.swal({
                         title: "Payment Sent!",
                         text: 'SENT ' + amount + ' ' + asset_name + ' to ' + to_address,
-                        type: "error"
+                        type: "success"
                     });
                     page_wallet();
-
-                    //$("#transactiondiv").html('<div class="text-center"><h3>SENT ' + amount + ' ' + asset_name + ' to</h3><br /><p>' + to_address + '</p></div>');
                 })
                 .catch(function (error) {
-                    window.swal({
-                        title: "Problem",
-                        text: "There was an error performing this transaction. - '" + error.message + "'",
-                        type: "error"
-                    });
+
+                    if (error.data.extras.result_codes.operations[0] === 'op_no_destination')
+                    {
+                        window.swal({
+                            title: "Problem",
+                            text: "It appears you are sending to a newly created account. This account must be funded with at least 5 XLM first and be able to accept NEZ.",
+                            type: "error"
+                        });
+                    }
+                    else
+                    {
+                        window.swal({
+                            title: "Problem",
+                            text: "There was an error performing this transaction. - '" + error.message + "'",
+                            type: "error"
+                        });
+                    }
                     console.error('Error!', error);
                 });
         }
@@ -326,18 +335,71 @@ function page_preview_payment()
                     window.swal({
                         title: "Payment Sent!",
                         text: 'SENT ' + amount + ' ' + asset_name + ' to ' + to_address,
-                        type: "error"
+                        type: "success"
                     });
                     page_wallet();
-                    //$("#transactiondiv").html('<div class="text-center"><h3>SENT ' + amount + ' ' + asset_name + ' to</h3><br /><p>' + to_address + '</p></div>');
                 })
                 .catch(function (error) {
 
-                    window.swal({
-                        title: "Problem",
-                        text: "There was an error performing this transaction. - '" + error.message + "'",
-                        type: "error"
-                    });
+                    if (error.data.extras.result_codes.operations[0] === 'op_no_destination')
+                    {
+                        if (amount >= 5)
+                        {
+                            window.swal({
+                                title: "Activating New Account",
+                                text: "This appears to be a newly created account on the network. Please wait while we activate the account and send XLM.",
+                                imageUrl: "images/ajaxloader.gif",
+                                showConfirmButton: false,
+                                allowOutsideClick: false
+                            });
+
+                            //Activate newly created account
+                            server.loadAccount(public_key)
+                            .then(function (receiver) {
+
+                                var transaction = new StellarSdk.TransactionBuilder(receiver)
+                                    .addOperation(StellarSdk.Operation.createAccount({
+                                        destination: to_address,
+                                        startingBalance: amount
+                                    }))
+                                    .build();
+                                transaction.sign(StellarSdk.Keypair.fromSecret(secret_key));
+                                return server.submitTransaction(transaction);
+                            })
+                            .then(function(result)
+                            {
+                                window.swal({
+                                    title: "Payment Sent!",
+                                    text: 'SENT ' + amount + ' ' + asset_name + ' to ' + to_address,
+                                    type: "success"
+                                });
+                                page_wallet();
+                            })
+                            .catch(function (error) {
+                                window.swal({
+                                    title: "Problem",
+                                    text: "There was an error performing this transaction. - '" + error.message + "'",
+                                    type: "error"
+                                });
+                            });
+                        }
+                        else
+                        {
+                            window.swal({
+                                title: "New Account",
+                                text: 'This appears to be a newly created account on the network. To activate it, at least 5 XLM must be sent.',
+                                type: "error"
+                            });
+                        }
+                    }
+                    else
+                    {
+                        window.swal({
+                            title: "Problem",
+                            text: "There was an error performing this transaction. - '" + error.message + "'",
+                            type: "error"
+                        });
+                    }
                     console.error('Error!', error);
                 });
         }
@@ -432,6 +494,22 @@ function sort_dropdown_list(select_id)
     });
 
     $('select').html(selectList);
+}
+
+function incoming_payment_handler()
+{
+    eventserver = new StellarSdk.Server(STELLAR_SERVER);
+    StellarSdk.Config.setAllowHttp(true);
+    StellarSdk.Network.usePublicNetwork();
+
+    var es = eventserver.payments()
+        .cursor('now')
+        .stream({
+            onmessage: function (message) {
+                console.log(message);
+                //alert('Payment Received');
+            }
+        })
 }
 
 jQuery.validator.addMethod("secretStartsWithS", function(secret_key, element) {
