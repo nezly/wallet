@@ -1,31 +1,16 @@
 const STELLAR_SERVER = 'https://horizon.stellar.org';
 const NEZ_ISSUER = 'GDGKBRCPW4C3ENNC5C64PE6U33MG52GBKFXOK5P3OSWF74DAOXRXV6OJ';
-const XLM_TRANSACTION_MIN = 1.5; //Required minimum balance
+const XLM_TRANSACTION_MIN = 1.5001; //Required minimum balance with NEZ accepted (set by Stellar Foundation)
 
-var csrf_token = null;
-var client_id = 0;
-var client_secret = null;
 var authtoken = null;
-var refresh_token = null;
-
 var key_pair = null;
 var public_key = null;
 var secret_key = null;
 var server = null;
 var eventserver = null;
-var stellar_account = null;
+
 var xlm_total = 0;
 var nez_total = 0;
-
-function sweet_popup(pop_title, pop_text, pop_type)
-{
-    swal({
-        title: pop_title,
-        text: pop_text,
-        type: pop_type,
-        confirmButtonColor: '#00aeef'
-    });
-}
 
 function login()
 {
@@ -35,7 +20,6 @@ function login()
     {
         key_pair = StellarSdk.Keypair.fromSecret(secret_key);
         public_key = key_pair.publicKey();
-        //sweet_popup("Public", '' + public_key, "success");
         page_wallet();
     }
     catch (err)
@@ -510,6 +494,16 @@ function incoming_payment_handler()
                 //alert('Payment Received');
             }
         })
+}
+
+function sweet_popup(pop_title, pop_text, pop_type)
+{
+    swal({
+        title: pop_title,
+        text: pop_text,
+        type: pop_type,
+        confirmButtonColor: '#00aeef'
+    });
 }
 
 jQuery.validator.addMethod("secretStartsWithS", function(secret_key, element) {
