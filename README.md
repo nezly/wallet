@@ -1,4 +1,4 @@
-#Nezly Online Wallet
+*Nezly Online Wallet*
 https://wallet.nezly.com/
 
 A lightweight online wallet to facilitate transfers of Nezly Tokens (NEZ) and Stellar Lumens (XLM) on the Stellar Network. 
